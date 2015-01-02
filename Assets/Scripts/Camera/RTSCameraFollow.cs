@@ -13,17 +13,17 @@ public class RTSCameraFollow : MonoBehaviour
 		public bool rotateEnabled = true;
 		public Player player;
 
-		//	private Player player;
+		
 
 		void Start ()
 		{
-				//		player = Player;
+					
 		}
 	
 		// Update is called once per frame
 		void FixedUpdate ()
 		{	
-				if (mouseMoveCamera && Screen.showCursor /*&& player.hud.MouseInBounds ()*/) {
+				if (mouseMoveCamera /*&&/* Screen.showCursor /*&& player.hud.MouseInBounds ()*/) {
 						MouseMoveCamera ();
 				}
 				if (keyboardMoveCamera) {
@@ -66,6 +66,8 @@ public class RTSCameraFollow : MonoBehaviour
 
 		private void MouseMoveCamera ()
 		{
+				bool mouseScroll = false;
+
 				float xpos = Input.mousePosition.x;
 				float ypos = Input.mousePosition.y;
 				float speed = ResourceManager.ScrollSpeed;
@@ -79,9 +81,13 @@ public class RTSCameraFollow : MonoBehaviour
 								xpos = 1;
 						movement.x -= ResourceManager.ScrollSpeed;
 						speed = ResourceManager.SpeedMultiplier * ResourceManager.ScrollWidth / (xpos + player.hud.LeftOffset);
+						player.hud.SetCursorState (CursorState.PanLeft);
+						mouseScroll = true;
 				} else if (xpos <= Screen.width && xpos > Screen.width - ResourceManager.ScrollWidth - player.hud.RightOffset) {
 						movement.x += ResourceManager.ScrollSpeed;
 						speed = ResourceManager.SpeedMultiplier * ResourceManager.ScrollWidth / (Screen.width - xpos - player.hud.RightOffset);
+						player.hud.SetCursorState (CursorState.PanRight);
+						mouseScroll = true;
 				}
 
 				//vertical movement
@@ -90,9 +96,13 @@ public class RTSCameraFollow : MonoBehaviour
 								ypos = 1;
 						movement.z -= ResourceManager.ScrollSpeed;
 						speed = ResourceManager.SpeedMultiplier * ResourceManager.ScrollWidth / (ypos + player.hud.BottomOffset);
+						player.hud.SetCursorState (CursorState.PanDown);
+						mouseScroll = true;
 				} else if (ypos <= Screen.height && ypos > Screen.height - ResourceManager.ScrollWidth - player.hud.TopOffset) {
 						movement.z += ResourceManager.ScrollSpeed;
 						speed += ResourceManager.SpeedMultiplier * ResourceManager.ScrollWidth / (Screen.height - ypos - player.hud.TopOffset);
+						player.hud.SetCursorState (CursorState.PanUp);
+						mouseScroll = true;
 				}
 
 				movement = transform.TransformDirection (movement);
@@ -104,6 +114,9 @@ public class RTSCameraFollow : MonoBehaviour
 
 				if (destination != origin) {
 						transform.position = Vector3.MoveTowards (origin, destination, Time.deltaTime * speed);
+				}
+				if (!mouseScroll) {
+						player.hud.SetCursorState (CursorState.Select);
 				}
 		}
 
@@ -139,9 +152,9 @@ public class RTSCameraFollow : MonoBehaviour
 				if (Input.GetMouseButton (2)) {
 						destination.x -= Input.GetAxis ("Mouse Y") * ResourceManager.RotateAmount;
 						destination.y += Input.GetAxis ("Mouse X") * ResourceManager.RotateAmount;
-						Screen.showCursor = false;
+						//Screen.showCursor = false;
 				} else {
-						Screen.showCursor = true;
+						//Screen.showCursor = true;
 				}
 				if (destination != origin) {
 						transform.eulerAngles = Vector3.MoveTowards (origin, destination, Time.deltaTime * ResourceManager.RotateSpeed);
