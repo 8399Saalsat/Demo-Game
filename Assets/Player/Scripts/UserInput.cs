@@ -24,7 +24,7 @@ public class UserInput : MonoBehaviour
 
 		void FixedUpdate ()
 		{	
-				if (mouseMoveCamera && !rotating && player.hud.MouseInBounds ()) {
+				if (mouseMoveCamera && !rotating/* && player.hud.MouseInBounds ()*/) {
 						MouseMoveCamera ();
 				}
 				if (keyboardMoveCamera) {
@@ -171,6 +171,7 @@ public class UserInput : MonoBehaviour
 								RightMouseClick ();
 						}
 				}
+				MouseHover ();
 		}
 	
 		private void LeftMouseClick ()
@@ -179,10 +180,11 @@ public class UserInput : MonoBehaviour
 						GameObject hitObject = FindHitObject ();
 						Vector3 hitPoint = FindHitPoint ();
 						if (hitObject && hitPoint != ResourceManager.InvalidPosition) {
-								if (player.SelectedObject)
+								if (player.SelectedObject) {
 										player.SelectedObject.MouseClick (hitObject, hitPoint, player);
-								else if (hitObject.name != "Ground") {
-										WorldObject worldObject = hitObject.transform.root.GetComponent <WorldObject > ();
+										Debug.Log ("updating selection");
+								} else if (hitObject.name != "Ground") {
+										WorldObject worldObject = hitObject.transform.parent.GetComponent <WorldObject > ();
 										if (worldObject) {
 												player.SelectedObject = worldObject;
 												worldObject.SetSelection (true, player.hud.GetPlayingArea ());
@@ -218,5 +220,25 @@ public class UserInput : MonoBehaviour
 						return hit.point;
 				else
 						return ResourceManager.InvalidPosition;
+		}
+
+		private void MouseHover ()
+		{
+				if (player.hud.MouseInBounds ()) {
+						GameObject hoverObject = FindHitObject ();
+						if (hoverObject) {
+								if (player.SelectedObject)
+										player.SelectedObject.SetHoverState (hoverObject);
+								else if (hoverObject.name != "Ground") {
+										Player owner = hoverObject.transform.root.GetComponent < Player> ();
+										if (owner) {
+												Unit unit = hoverObject.transform.parent.GetComponent<Unit> ();
+												Building building = hoverObject.transform.parent.GetComponent<Building> ();
+												if (owner.playerName == player.playerName && (unit || building))
+														player.hud.SetCursorState (CursorState.Select);
+										}
+								}
+						}
+				}
 		}
 }

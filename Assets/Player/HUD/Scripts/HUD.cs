@@ -78,7 +78,7 @@ public class HUD : MonoBehaviour
 		{
 				Vector3 mousePos = Input.mousePosition;
 				bool insideWidth = mousePos.x >= 0 && mousePos.x <= Screen.width - ORDERS_BAR_WIDTH;
-				bool insideHeight = mousePos.y >= 0 && mousePos.y <= Screen.height - RESOURCE_BAR_HEIGHT;
+				bool insideHeight = mousePos.y >= 0 && mousePos.y <= Screen.height - RESOURCE_BAR_HEIGHT;				
 				return insideWidth && insideHeight;
 		}
 
@@ -107,12 +107,14 @@ public class HUD : MonoBehaviour
 		private void DrawMouseCursor ()
 		{
 				bool mouseOverHud = !MouseInBounds () && activeCursorState != CursorState.PanRight && activeCursorState != CursorState.PanUp;
+
+				
 				if (mouseOverHud) {
 						Screen.showCursor = true;
-						Debug.Log ("show cursor = true");
+						//	Debug.Log ("show cursor = true");
 				} else {
 						Screen.showCursor = false;
-						Debug.Log ("show cursor = false");
+						//	Debug.Log ("show cursor = false");
 						GUI.skin = mouseCursorSkin;
 						GUI.BeginGroup (new Rect (0, 0, Screen.width, Screen.height));
 						UpdateCursorAnimation ();
@@ -141,9 +143,10 @@ public class HUD : MonoBehaviour
 				float leftPos = Input.mousePosition.x;
 				float topPos = Screen.height - Input.mousePosition.y;
 				if (activeCursorState == CursorState.PanRight)
-						leftPos = Screen.width - activeCursor.width - ORDERS_BAR_WIDTH;
-				else if (activeCursorState == CursorState.PanDown)
-						topPos = Screen.height - activeCursor.height;
+						leftPos -= activeCursor.width / 2;
+			//	else if (activeCursorState == CursorState.PanDown)
+						//topPos = Screen.height - activeCursor.height;
+					//	topPos -= activeCursor.height / 2;
 				else if (activeCursorState == CursorState.Move || activeCursorState == CursorState.Select || activeCursorState == CursorState.Harvest) {
 						topPos -= activeCursor.height / 2;
 						leftPos -= activeCursor.width / 2;

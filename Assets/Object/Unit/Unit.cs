@@ -22,4 +22,13 @@ public class Unit : WorldObject
 		{
 				base.OnGUI ();
 		}
+
+		public override void SetHoverState (GameObject hoverObject)
+		{
+				base.SetHoverState (hoverObject);
+				if (player && player.human && currentlySelected) {
+						if (hoverObject.name == "Ground")
+								player.hud.SetCursorState (RTS.CursorState.Move);
+				}
+		}
 }
