@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using RTS;
 
 public class HUD : MonoBehaviour
@@ -21,25 +22,67 @@ public class HUD : MonoBehaviour
 		public Texture2D rightCursor;
 		public Texture2D upCursor;
 		public Texture2D downCursor;
+		public Texture2D buttonHover;
+		public Texture2D buttonClick;
 		public Texture2D[] moveCursors;
 		public Texture2D[] attackCursors;
 		public Texture2D[] harvestCursors;
+		public Texture2D[] resources;
+
 
 		private const int ORDERS_BAR_WIDTH = 150;
 		private const int RESOURCE_BAR_HEIGHT = 40;
 		private const int SELECTION_NAME_HEIGHT = 15;
+		private const int ICON_WIDTH = 32;
+		private const int ICON_HEIGHT = 32;
+		private const int TEXT_WIDTH = 128;
+		private const int TEXT_HEIGHT = 32;
+		private const int BUILD_IMAGE_WIDTH = 64;
+		private const int BUILD_IMAGE_HEIGHT = 64;
+		private const int BUTTON_SPACING = 7;
+		private const int SCROLL_BAR_WIDTH = 22;
 
 		private CursorState activeCursorState;
 		private int currentFrame = 0;
-
 		private Texture2D activeCursor;
 		private Player player;
+		private Dictionary<ResourceType, int> resourceValues;
+		private Dictionary<ResourceType, int> resourceLimits;
+		private Dictionary<ResourceType, Texture2D> resourceImages;
+		private WorldObject lastSelection;
+		private float sliderValue;
+		private int buildAreaHeight = 0;
+
 		// Use this for initialization
 		void Start ()
 		{
 				player = transform.root.GetComponent < Player > (); 
 				ResourceManager.StoreSelectBoxItems (selectBoxSkin);
 				SetCursorState (CursorState.Select);
+
+				resourceValues = new Dictionary<ResourceType, int > ();
+				resourceLimits = new Dictionary<ResourceType, int > ();
+
+				resourceImages = new Dictionary<ResourceType,Texture2D> ();
+
+				buildAreaHeight = Screen.height - RESOURCE_BAR_HEIGHT - SELECTION_NAME_HEIGHT - 2 * BUTTON_SPACING;
+				
+				for (int i =0; i < resources.Length; i++) {
+						switch (resources [i].name) {
+						case "Money":
+								resourceImages.Add (ResourceType.Money, resources [i]);
+								resourceValues.Add (ResourceType.Money, 0);
+								resourceLimits.Add (ResourceType.Money, 0);
+								break;
+						case "Power":
+								resourceImages.Add (ResourceType.Power, resources [i]);
+								resourceValues.Add (ResourceType.Power, 0);
+								resourceLimits.Add (ResourceType.Power, 0);
+								break;
+						default:
+								break;
+						}
+				}
 		}
 	
 		void OnGUI ()
@@ -60,8 +103,17 @@ public class HUD : MonoBehaviour
 				GUI.Box (new Rect (0, 0, ORDERS_BAR_WIDTH, Screen.height - RESOURCE_BAR_HEIGHT), "");
 				if (player.SelectedObject)
 						selectionName = player.SelectedObject.objectName;
-				if (!selectionName.Equals (""))
-						GUI.Label (new Rect (0, 10, ORDERS_BAR_WIDTH, SELECTION_NAME_HEIGHT), selectionName);
+				if (!selectionName.Equals ("")) {
+						int topPos = buildAreaHeight + BUTTON_SPACING;
+						GUI.Label (new Rect (0, topPos, ORDERS_BAR_WIDTH, SELECTION_NAME_HEIGHT), selectionName);
+				}
+				if (player.SelectedObject.IsOwnedBy (player)) {
+						//reset slider value if the selected object has changed
+						if (lastSelection && lastSelection != player.SelectedObject)
+								sliderValue = 0.0f;
+						DrawActions (player.SelectedObject.GetActions ());
+						lastSelection = player.SelectedObject;
+				}
 
 				GUI.EndGroup ();
 		}
@@ -71,7 +123,21 @@ public class HUD : MonoBehaviour
 				GUI.skin = resourceSkin;
 				GUI.BeginGroup (new Rect (0, 0, Screen.width, RESOURCE_BAR_HEIGHT));
 				GUI.Box (new Rect (0, 0, Screen.width, RESOURCE_BAR_HEIGHT), "");
+				int topPos = 4;
+				int iconLeft = 4;
+				int textLeft = 20;
+				DrawResourceIcon (ResourceType.Money, iconLeft, textLeft, topPos);
+				iconLeft += TEXT_WIDTH;
+				textLeft += TEXT_WIDTH;
+				DrawResourceIcon (ResourceType.Power, iconLeft, textLeft, topPos);
 				GUI.EndGroup ();
+		}
+		private void DrawResourceIcon (ResourceType type, int iconLeft, int textLeft, int topPos)
+		{
+				Texture2D icon = resourceImages [type];
+				string text = resourceValues [type].ToString () + "/" + resourceLimits [type].ToString ();
+				GUI.DrawTexture (new Rect (iconLeft, topPos, ICON_WIDTH, ICON_HEIGHT), icon);
+				GUI.Label (new Rect (textLeft, topPos, TEXT_WIDTH, TEXT_HEIGHT), text);
 		}
 
 		public bool MouseInBounds ()
@@ -154,6 +220,58 @@ public class HUD : MonoBehaviour
 				return new Rect (leftPos, topPos, activeCursor.width, activeCursor.height);
 		}
 
+		private void DrawActions (string[] actions)
+		{
+				GUIStyle buttons = new GUIStyle ();
+				buttons.hover.background = buttonHover;
+				buttons.active.background = buttonClick;
+				GUI.skin.button = buttons;
+				int numActions = actions.Length;
+				//define the area to draw the ations inside
+				GUI.BeginGroup (new Rect (0, 0, ORDERS_BAR_WIDTH, buildAreaHeight));
+				//draw scroll bar for the list of actions if need be
+				if (numActions >= MaxNumRows (buildAreaHeight))
+						DrawSlider (buildAreaHeight, numActions / 2.0f);
+				//display possible actions as buttons and handle the button click for each
+				for (int i = 0; i < numActions; i++) {
+						int column = i % 2;
+						int row = i / 2;
+						Rect pos = GetButtonPos (row, column);
+						Texture2D action = ResourceManager.GetBuildImage (actions [i]);
+						if (action) {
+								//create the button and handle the click of that button
+								if (GUI.Button (pos, action)) {
+										if (player.SelectedObject)
+												player.SelectedObject.PerformAction (actions [i]);
+								}
+						}
+				}
+				GUI.EndGroup ();
+		}
+
+		private Rect GetScrollPos (int groupHeight)
+		{
+				return new Rect (BUTTON_SPACING, BUTTON_SPACING, SCROLL_BAR_WIDTH, groupHeight - 2 * BUTTON_SPACING);
+		}
+
+		private int MaxNumRows (int areaHeight)
+		{
+				return areaHeight / BUILD_IMAGE_HEIGHT;
+		}
+
+		private Rect GetButtonPos (int row, int column)
+		{
+				int left = SCROLL_BAR_WIDTH + column * BUILD_IMAGE_WIDTH;
+				int top = row * BUILD_IMAGE_HEIGHT - (int)sliderValue * BUILD_IMAGE_HEIGHT;
+				return new Rect (left, top, BUILD_IMAGE_WIDTH, BUILD_IMAGE_HEIGHT);
+		}
+
+		private void DrawSlider (int groupHeight, float numRows)
+		{
+				//slider goes from 0 to the number of rows that do not fit on screen
+				sliderValue = GUI.VerticalSlider (GetScrollPos (groupHeight), sliderValue, 0.0f, numRows - MaxNumRows (groupHeight));
+		}
+
 		public void SetCursorState (CursorState newState)
 		{
 				activeCursorState = newState;
@@ -188,6 +306,12 @@ public class HUD : MonoBehaviour
 				default :
 						break;
 				}
+		}
+
+		public void SetResourceValues (Dictionary<ResourceType, int> resourceValues, Dictionary<ResourceType, int> resourceLimits)
+		{
+				this.resourceValues = resourceValues;
+				this.resourceLimits = resourceLimits;
 		}
 
 }

@@ -13,4 +13,9 @@ namespace RTS
 				PanDown,
 				Harvest
 		}
+		public enum ResourceType
+		{
+				Money,
+				Power
+		}
 }
