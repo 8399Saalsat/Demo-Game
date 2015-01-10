@@ -25,10 +25,13 @@ public class Unit : WorldObject
 		protected override void Update ()
 		{
 				base.Update ();
-				if (rotating)
+				if (rotating) {
 						TurnToTarget ();
-				else if (moving)
+						Debug.Log ("Turn to target");
+				} else if (moving) {
+						Debug.Log ("Make Move");
 						MakeMove ();
+				}
 		}
 		protected override void OnGUI ()
 		{
@@ -47,6 +50,7 @@ public class Unit : WorldObject
 		{
 				base.MouseClick (hitObject, hitPoint, controller);
 				if (player && player.human && currentlySelected) {
+						Debug.Log ("currentlySelected");
 						if (hitObject.name == "Ground" && hitPoint != RTS.ResourceManager.InvalidPosition) {
 								float x = hitPoint.x;
 								float y = hitPoint.y + player.SelectedObject.transform.position.y;

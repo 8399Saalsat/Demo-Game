@@ -182,7 +182,6 @@ public class UserInput : MonoBehaviour
 						if (hitObject && hitPoint != ResourceManager.InvalidPosition) {
 								if (player.SelectedObject) {
 										player.SelectedObject.MouseClick (hitObject, hitPoint, player);
-										Debug.Log ("updating selection");
 								} else if (hitObject.name != "Ground") {
 										WorldObject worldObject = hitObject.transform.parent.GetComponent <WorldObject > ();
 										if (worldObject) {
