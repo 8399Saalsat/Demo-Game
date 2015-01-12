@@ -60,20 +60,25 @@ public class Player : MonoBehaviour
 				AddResource (ResourceType.Power, startPower);
 		}
 
-		private void AddResource (ResourceType type, int amount)
+		public void AddResource (ResourceType type, int amount)
 		{
 				resources [type] += amount;
 		}
 		private void IncrementResourceLimit (ResourceType type, int amount)
 		{
-				resourceLimits [type] += amount;
+				resourceLimits [type] += amount; 
 		}
 
-		public void AddUnit (string unitName, Vector3 spawnPoint, Quaternion rotation)
+		public void AddUnit (string unitName, Vector3 spawnPoint, Vector3 rallyPoint, Quaternion rotation, Building creator)
 		{
-				Debug.Log ("add" + unitName + " to player");
 				Units units = GetComponentInChildren<Units> ();
 				GameObject newUnit = (GameObject)Instantiate (ResourceManager.GetUnit (unitName), spawnPoint, rotation);
 				newUnit.transform.parent = units.transform;
+				Unit unitObject = newUnit.GetComponent<Unit> ();
+				if (unitObject) {
+						unitObject.Init (creator);
+						if (spawnPoint != rallyPoint)
+								unitObject.StartMove (rallyPoint);
+				}
 		}
 }

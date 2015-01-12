@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 namespace RTS
 {
 		public static class ResourceManager
@@ -18,15 +19,27 @@ namespace RTS
 				public static GUISkin SelectBoxSkin{ get { return selectBoxSkin; } }
 				public static float SpeedMultiplier { get { return 25; } }
 				public static float ZoomSpeed { get { return 250; } }
+				
+				public static Texture2D HealthyTexture { get { return healthyTexture; } }
+				public static Texture2D DamagedTexture { get { return damagedTexture; } }
+				public static Texture2D CriticalTexture { get { return criticalTexture; } }
 
 				private static Bounds invalidBounds = new Bounds (new Vector3 (-99999, -99999, -99999), new Vector3 (0, 0, 0));
 				private static Vector3 invalidPosition = new Vector3 (-99999, -99999, -99999);
 				private static GUISkin selectBoxSkin;
 				private static GameObjectList gameObjectList;
+				private static Dictionary<ResourceType, Texture2D> resourceHealthBarTextures;
 				
-				public static void StoreSelectBoxItems (GUISkin skin)
+				private static Texture2D healthyTexture;
+				private static Texture2D damagedTexture;
+				private static Texture2D criticalTexture;
+				
+				public static void StoreSelectBoxItems (GUISkin skin, Texture2D healthy, Texture2D damaged, Texture2D critical)
 				{
 						selectBoxSkin = skin;
+						healthyTexture = healthy;
+						damagedTexture = damaged;
+						criticalTexture = critical;
 				}
 
 				public static void SetGameObjectList (GameObjectList objectList)
@@ -54,6 +67,18 @@ namespace RTS
 				public static Texture2D GetBuildImage (string name)
 				{
 						return gameObjectList.GetBuildImage (name);
+				}
+				
+				public static Texture2D GetResourceHealthBar (ResourceType resourceType)
+				{
+						if (resourceHealthBarTextures != null && resourceHealthBarTextures.ContainsKey (resourceType))
+								return resourceHealthBarTextures [resourceType];
+						return null;
+				}
+				
+				public static void SetResourceHealthBarTextures (Dictionary<ResourceType, Texture2D> images)
+				{
+						resourceHealthBarTextures = images;
 				}
 		}
 

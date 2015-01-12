@@ -11,11 +11,14 @@ namespace RTS
 				PanRight,
 				PanUp,
 				PanDown,
-				Harvest
+				Harvest,
+				RallyPoint
 		}
 		public enum ResourceType
 		{
 				Money,
-				Power
+				Power,
+				Ore,
+				Unknown
 		}
 }
