@@ -89,9 +89,9 @@ public class Harvester : Unit
 				}
 		}
 		
-		public override void Init (Building creator)
+		public override void SetBuilding (Building creator)
 		{
-				base.Init (creator);
+				base.SetBuilding (creator);
 				resourceStore = creator;
 		}
 		

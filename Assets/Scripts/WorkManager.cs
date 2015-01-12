@@ -37,5 +37,25 @@ namespace RTS
 						return new Rect (selectBoxRight, selectBoxLeft, selectBoxWidth, selectBoxHeight);
 				}
 
+				public static GameObject FindHitObject (Vector3 origin)
+				{
+						Ray ray = Camera.main.ScreenPointToRay (origin);
+						RaycastHit hit;
+						if (Physics.Raycast (ray, out hit))
+								return hit.collider.gameObject;
+						else
+								return null;
+				}
+		
+				public static Vector3 FindHitPoint (Vector3 origin)
+				{
+						Ray ray = Camera.main.ScreenPointToRay (origin);
+						RaycastHit hit;
+						if (Physics.Raycast (ray, out hit))
+								return hit.point;
+						else
+								return ResourceManager.InvalidPosition;
+				}
+
 		}
 }

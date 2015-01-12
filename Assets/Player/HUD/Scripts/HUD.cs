@@ -201,20 +201,20 @@ public class HUD : MonoBehaviour
 		private void DrawMouseCursor ()
 		{
 				bool mouseOverHud = !MouseInBounds () && activeCursorState != CursorState.PanRight && activeCursorState != CursorState.PanUp;
-
 				
 				if (mouseOverHud) {
 						Screen.showCursor = true;
-						//	Debug.Log ("show cursor = true");
 				} else {
 						Screen.showCursor = false;
-						//	Debug.Log ("show cursor = false");
-						GUI.skin = mouseCursorSkin;
-						GUI.BeginGroup (new Rect (0, 0, Screen.width, Screen.height));
-						UpdateCursorAnimation ();
-						Rect cursorPosition = GetCursorDrawPosition ();
-						GUI.Label (cursorPosition, activeCursor);
-						GUI.EndGroup ();
+						if (!player.IsFindingBuildingLocation ()) {
+								GUI.skin = mouseCursorSkin;
+								GUI.BeginGroup (new Rect (0, 0, Screen.width, Screen.height));
+								UpdateCursorAnimation ();
+								Rect cursorPosition = GetCursorDrawPosition ();
+								GUI.Label (cursorPosition, activeCursor);
+								GUI.EndGroup ();
+						}
+					
 				}
 		}
 
@@ -288,14 +288,13 @@ public class HUD : MonoBehaviour
 				int topPos = buildAreaHeight - BUILD_IMAGE_HEIGHT / 2;
 				int width = BUILD_IMAGE_WIDTH / 2;
 				int height = BUILD_IMAGE_HEIGHT / 2;
+				if (GUI.Button (new Rect (leftPos, topPos, width, height), building.sellImage)) {
+						building.Sell ();
+				}
 				if (building.hasSpawnPoint ()) {
-						
-						if (GUI.Button (new Rect (leftPos, topPos, width, height), building.sellImage)) {
-								building.Sell ();
-						}
 						leftPos += width + BUTTON_SPACING;
 						if (GUI.Button (new Rect (leftPos, topPos, width, height), building.rallyPointImage)) {
-								if (activeCursorState != CursorState.RallyPoint && previousCursorState != CursorState.RallyPoint)
+								if (activeCursorState != CursorState.RallyPoint /*&& previousCursorState != CursorState.RallyPoint*/)
 										SetCursorState (CursorState.RallyPoint);
 								else {
 										//hack to ensure toggle between RallyPoint and not works
