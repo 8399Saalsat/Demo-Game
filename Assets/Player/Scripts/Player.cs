@@ -16,6 +16,7 @@ public class Player : MonoBehaviour
 		public int startPowerLimit;
 		public Material notAllowedMaterial;
 		public Material allowedMaterial;
+		public Color teamColor;
 
 		private Dictionary<ResourceType, int> resources;
 		private Dictionary<ResourceType, int> resourceLimits;

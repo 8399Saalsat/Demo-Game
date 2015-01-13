@@ -110,9 +110,12 @@ public class Unit : WorldObject
 		private void MakeMove ()
 		{
 				transform.position = Vector3.MoveTowards (transform.position, destination, Time.deltaTime * moveSpeed);
-				if (transform.position == destination)
+				if (transform.position == destination) {
+						movingIntoPosition = false;
 						moving = false;
+				}
 				CalculateBounds ();
+				
 		}
 		
 		private void CalculateTargetDestination ()

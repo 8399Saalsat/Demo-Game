@@ -64,6 +64,7 @@ namespace RTS
 				{
 						return gameObjectList.GetPlayerObject ();
 				}
+		
 				public static Texture2D GetBuildImage (string name)
 				{
 						return gameObjectList.GetBuildImage (name);

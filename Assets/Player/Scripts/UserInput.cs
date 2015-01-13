@@ -226,8 +226,9 @@ public class UserInput : MonoBehaviour
 												if (owner) {
 														Unit unit = hoverObject.transform.parent.GetComponent<Unit> ();
 														Building building = hoverObject.transform.parent.GetComponent<Building> ();
-														if (owner.playerName == player.playerName && (unit || building))
+														if (owner.playerName == player.playerName && (unit || building)) {
 																player.hud.SetCursorState (CursorState.Select);
+														}
 												}
 										}
 								}
