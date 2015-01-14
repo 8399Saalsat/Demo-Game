@@ -49,7 +49,9 @@ public class WorldObject : MonoBehaviour
 		// Update is called once per frame
 		protected virtual void Update ()
 		{
-	
+				currentWeaponChargeTime += Time.deltaTime;
+				if (attacking && !movingIntoPosition && !aiming)
+						PerformAttack ();
 		}
 
 		protected virtual void OnGUI ()
@@ -93,7 +95,7 @@ public class WorldObject : MonoBehaviour
 						this.playingArea = playingArea;
 		}
 
-		public string[] GetActions ()
+		public virtual string[] GetActions ()
 		{
 				return actions;
 		}
@@ -125,6 +127,13 @@ public class WorldObject : MonoBehaviour
 										ChangeSelection (worldObject, controller);
 						}
 				}
+		}
+
+		public void TakeDamage (int damage)
+		{
+				hitPoints -= damage;
+				if (hitPoints <= 0)
+						Destroy (gameObject);
 		}
 
 		private bool TargetInRange ()

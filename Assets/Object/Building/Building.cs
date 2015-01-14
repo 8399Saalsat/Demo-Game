@@ -62,6 +62,13 @@ public class Building : WorldObject
 						}
 				}
 		}
+
+		public override string[] GetActions ()
+		{
+				if (!needsBuilding)
+						return actions;
+				return new string[]{};
+		}
 		
 		public override void SetHoverState (GameObject hoverObject)
 		{

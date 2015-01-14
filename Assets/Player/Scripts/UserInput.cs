@@ -24,6 +24,13 @@ public class UserInput : MonoBehaviour
 
 		void FixedUpdate ()
 		{	
+				if (Input.GetKeyDown (KeyCode.Escape)) {
+						if (player && player.SelectedObject) {
+								player.SelectedObject.SetSelection (false, player.hud.GetPlayingArea ());
+								player.SelectedObject = null;
+						} else
+								OpenPauseMenu ();
+				}
 				if (mouseMoveCamera && !rotating/* && player.hud.MouseInBounds ()*/) {
 						MouseMoveCamera ();
 				}
@@ -37,6 +44,16 @@ public class UserInput : MonoBehaviour
 						Rotate ();
 				}
 		
+		}
+
+		private void OpenPauseMenu ()
+		{
+				Time.timeScale = 0.0f;
+				//GetComponentInChildren<PauseMenu> ().enabled = true;
+				player.GetComponentInChildren<PauseMenu> ().enabled = true;
+				GetComponent<UserInput> ().enabled = false;
+				Screen.showCursor = true;
+				ResourceManager.MenuOpen = true;
 		}
 
 		private void KeyboardMoveCamera ()
