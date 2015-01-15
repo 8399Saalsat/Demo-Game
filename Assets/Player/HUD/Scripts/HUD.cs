@@ -15,6 +15,7 @@ public class HUD : MonoBehaviour
 		public GUISkin ordersSkin;
 		public GUISkin selectBoxSkin;
 		public GUISkin mouseCursorSkin;
+		public GUISkin playerDetailsSkin;
 
 		//public Texture2D activeCursor;
 		public Texture2D selectCursor;
@@ -115,6 +116,7 @@ public class HUD : MonoBehaviour
 						DrawResourceBar ();
 				}
 				DrawMouseCursor ();
+				DrawPlayerDetails ();
 			
 		}
 
@@ -146,6 +148,26 @@ public class HUD : MonoBehaviour
 				}
 			
 
+				GUI.EndGroup ();
+		}
+		private void DrawPlayerDetails ()
+		{
+				GUI.skin = playerDetailsSkin;
+				GUI.BeginGroup (new Rect (0, 0, Screen.width, Screen.height));
+				float height = ResourceManager.TextHeight;
+				float leftPos = ResourceManager.Padding;
+				float topPos = Screen.height - height - ResourceManager.Padding;
+				Texture2D avatar = PlayerManager.GetPlayerAvatar ();
+				if (avatar) {
+						//draw square at all times
+						GUI.DrawTexture (new Rect (leftPos, topPos, height, height), avatar);
+						leftPos += height + ResourceManager.Padding;
+				}
+				float minWidth = 0;
+				float maxWidth = 0;
+				string playerName = PlayerManager.GetPlayerName ();
+				playerDetailsSkin.GetStyle ("label").CalcMinMaxWidth (new GUIContent (playerName), out minWidth, out maxWidth);
+				GUI.Label (new Rect (leftPos, topPos, maxWidth, height), playerName);
 				GUI.EndGroup ();
 		}
 		
