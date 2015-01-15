@@ -7,7 +7,9 @@ Demo.exe
 Demo_Data/
 Demo_x86.exe
 Demo_x86_Data/
- 
+SavedGames/
+
+
 # ===================================== #
 # Visual Studio / MonoDevelop generated #
 # ===================================== #

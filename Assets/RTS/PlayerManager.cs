@@ -59,6 +59,35 @@ namespace RTS
 				{
 						return currentPlayer.Name == "" ? "Unknown" : currentPlayer.Name;
 				}
+
+				public static string[] GetPlayerNames ()
+				{
+						string[] playerNames = new string[players.Count];
+						for (int i = 0; i < playerNames.Length; i++)
+								playerNames [i] = players [i].Name;
+						return playerNames;
+				}
+
+				public static int GetAvatar (string playerName)
+				{
+						for (int i = 0; i < players.Count; i++) {
+								if (players [i].Name == playerName)
+										return players [i].Avatar;
+						}
+						return 0;
+				}
+
+				public static string[] GetSavedGames ()
+				{
+						DirectoryInfo directory = new DirectoryInfo ("SavedGames" + Path.DirectorySeparatorChar + currentPlayer.Name);
+						FileInfo[] files = directory.GetFiles ();
+						string[] savedGames = new string[files.Length];
+						for (int i =0; i < files.Length; i++) {
+								string filename = files [i].Name;
+								savedGames [i] = filename.Substring (0, filename.IndexOf ("."));
+						}
+						return savedGames;
+				}
 				
 				public static void Save ()
 				{

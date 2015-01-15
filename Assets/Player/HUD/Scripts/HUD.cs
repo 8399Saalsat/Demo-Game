@@ -147,7 +147,21 @@ public class HUD : MonoBehaviour
 						GUI.Label (new Rect (leftPos, topPos, ORDERS_BAR_WIDTH, SELECTION_NAME_HEIGHT), selectionName);
 				}
 			
+				int padding = 7;
+				int buttonWidth = ORDERS_BAR_WIDTH - 2 * padding - SCROLL_BAR_WIDTH;
+				int buttonHeight = RESOURCE_BAR_HEIGHT - 2 * padding;
+				int left = Screen.width - ORDERS_BAR_WIDTH / 2 - buttonWidth / 2 + SCROLL_BAR_WIDTH / 2;
+				Rect menuButtonPosition = new Rect (left, padding, buttonWidth, buttonHeight);
 
+				if (GUI.Button (menuButtonPosition, "Menu")) {
+						Time.timeScale = 0.0f;
+						PauseMenu pauseMenu = GetComponent<PauseMenu> ();
+						if (pauseMenu)
+								pauseMenu.enabled = true;
+						UserInput userInput = Camera.main.GetComponent<UserInput> ();
+						if (userInput)
+								userInput.enabled = false;
+				}
 				GUI.EndGroup ();
 		}
 		private void DrawPlayerDetails ()

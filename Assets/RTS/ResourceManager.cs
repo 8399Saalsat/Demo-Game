@@ -20,6 +20,7 @@ namespace RTS
 				public static GUISkin SelectBoxSkin{ get { return selectBoxSkin; } }
 				public static float SpeedMultiplier { get { return 25; } }
 				public static float ZoomSpeed { get { return 250; } }
+				public static string LevelName{ get; set; }
 
 				public static float PauseMenuHeight { get { return headerHeight + 2 * buttonHeight + 4 * padding; } }
 				public static float MenuWidth { get { return headerWidth + 2 * padding; } }

@@ -26,6 +26,15 @@ public static class SelectionList
 				else
 						return "";
 		}
+
+		public static void SetCurrentEntry (string entry)
+		{
+				gridIndex = -1;
+				for (int i =0; i <myEntries.Length; i++) {
+						if (myEntries [i] == entry)
+								gridIndex = i;
+				}
+		}
 		
 		public static bool Contains (string entry)
 		{
