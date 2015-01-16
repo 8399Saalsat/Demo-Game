@@ -98,6 +98,14 @@ namespace RTS
 				{
 						resourceHealthBarTextures = images;
 				}
+
+				public static int GetNewObjectId ()
+				{
+						LevelLoader loader = (LevelLoader)GameObject.FindObjectOfType (typeof(LevelLoader));
+						if (loader)
+								return loader.GetNewObjectId ();
+						return -1;
+				}
 		}
 
 }

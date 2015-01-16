@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using RTS;
+using Newtonsoft.Json;
 
 public class Worker : Unit
 {
@@ -32,6 +34,14 @@ public class Worker : Unit
 				}
 		}
 
+		public override void SaveDetails (JsonWriter writer)
+		{
+				base.SaveDetails (writer);
+				SaveManager.WriteBoolean (writer, "Building", building);
+				SaveManager.WriteFloat (writer, "AmountBuilt", amountBuilt);
+				if (currentProject)
+						SaveManager.WriteInt (writer, "CurrentProjectId", currentProject.ObjectId);
+		}
 		public override void SetBuilding (Building project)
 		{
 				base.SetBuilding (project);

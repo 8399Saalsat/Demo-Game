@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using RTS;
+using Newtonsoft.Json;
 
 public class Unit : WorldObject
 {
@@ -50,7 +52,7 @@ public class Unit : WorldObject
 										moveHover = true;
 						}
 						if (moveHover)
-								player.hud.SetCursorState (RTS.CursorState.Move);
+								player.hud.SetCursorState (CursorState.Move);
 				}
 		}
 		public override void MouseClick (GameObject hitObject, Vector3 hitPoint, Player controller)
@@ -63,7 +65,7 @@ public class Unit : WorldObject
 								if (resource && resource.isEmpty ())
 										clickedOnEmptyResource = true;
 						}
-						if ((hitObject.name == "Ground" || clickedOnEmptyResource) && hitPoint != RTS.ResourceManager.InvalidPosition) {
+						if ((hitObject.name == "Ground" || clickedOnEmptyResource) && hitPoint != ResourceManager.InvalidPosition) {
 								float x = hitPoint.x;
 								float y = hitPoint.y + player.SelectedObject.transform.position.y;
 								float z = hitPoint.z;
@@ -72,6 +74,20 @@ public class Unit : WorldObject
 						}
 				}
 		} 
+
+		public override void SaveDetails (JsonWriter writer)
+		{
+				base.SaveDetails (writer);
+				SaveManager.WriteBoolean (writer, "Moving", moving);
+				SaveManager.WriteBoolean (writer, "Rotating", rotating);
+				SaveManager.WriteVector (writer, "Destination", destination);
+				SaveManager.WriteQuaternion (writer, "TargetRotation", targetRotation);
+				if (destinationTarget) {
+						WorldObject destinationObject = destinationTarget.GetComponent<WorldObject> ();
+						if (destinationObject)
+								SaveManager.WriteInt (writer, "DestinationTargetId", destinationObject.ObjectId);	
+				}
+		}
 		public virtual void StartMove (Vector3 destination)
 		{
 				this.destination = destination;

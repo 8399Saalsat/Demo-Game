@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using RTS;
+using Newtonsoft.Json;
 
 public class Resource : WorldObject
 {
@@ -38,5 +39,11 @@ public class Resource : WorldObject
 		public ResourceType GetResourceType ()
 		{
 				return resourceType;
+		}
+
+		public override void SaveDetails (JsonWriter writer)
+		{
+				base.SaveDetails (writer);
+				SaveManager.WriteFloat (writer, "AmountLeft", amountLeft);
 		}
 }
