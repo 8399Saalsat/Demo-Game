@@ -1,15 +1,29 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using RTS;
 
 public class LoadMenu : MonoBehaviour
 {
 		public GUISkin mainSkin;
 		public GUISkin selectionSkin;
+		public AudioClip clickSound;
+		public float clickVolume = 1.0f;
+
+		private AudioElement audioElement;
 		
 		void Start ()
 		{
 				Activate ();
+				if (clickVolume < 0.0f)
+						clickVolume = 0.0f;
+				if (clickVolume > 1.0f)
+						clickVolume = 1.0f;
+				List<AudioClip> sounds = new List<AudioClip> ();
+				List<float> volumes = new List<float> ();
+				sounds.Add (clickSound);
+				volumes.Add (clickVolume);
+				audioElement = new AudioElement (sounds, volumes, "SelectPlayerMenu", null);
 		}
 		void Update ()
 		{
@@ -19,8 +33,10 @@ public class LoadMenu : MonoBehaviour
 
 		void OnGUI ()
 		{
-				if (SelectionList.MouseDoubleClick ())
+				if (SelectionList.MouseDoubleClick ()) {
+						PlayClick ();
 						StartLoad ();
+				}
 				GUI.skin = mainSkin;
 				float menuHeight = GetMenuHeight ();
 				float groupLeft = Screen.width / 2 - ResourceManager.MenuWidth / 2;
@@ -34,11 +50,13 @@ public class LoadMenu : MonoBehaviour
 				float topPos = menuHeight - ResourceManager.Padding - ResourceManager.ButtonHeight;
 				
 				if (GUI.Button (new Rect (leftPos, topPos, ResourceManager.ButtonWidth, ResourceManager.ButtonHeight), "Load Game")) {
+						PlayClick ();
 						StartLoad ();
 				}
 				
 				leftPos += ResourceManager.ButtonWidth + ResourceManager.Padding;
 				if (GUI.Button (new Rect (leftPos, topPos, ResourceManager.ButtonWidth, ResourceManager.ButtonHeight), "Cancel")) {
+						PlayClick ();
 						CancelLoad ();
 				}
 				
@@ -50,6 +68,12 @@ public class LoadMenu : MonoBehaviour
 				float selectionHeight = groupRect.height - GetMenuItemsHeight () - ResourceManager.Padding;
 				SelectionList.Draw (selectionLeft, selectionTop, selectionWidth, selectionHeight, selectionSkin);
 				
+		}
+
+		private void PlayClick ()
+		{
+				if (audioElement != null)
+						audioElement.Play (clickSound);
 		}
 		
 		private float GetMenuHeight ()

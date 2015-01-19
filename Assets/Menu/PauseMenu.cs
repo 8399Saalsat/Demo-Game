@@ -32,6 +32,7 @@ public class PauseMenu : Menu
 
 		protected override void HandleButton (string text)
 		{
+				base.HandleButton (text);
 				switch (text) {
 				case "Resume":
 						Resume ();
@@ -53,7 +54,8 @@ public class PauseMenu : Menu
 		{
 				Time.timeScale = 1.0f;
 				GetComponent<PauseMenu> ().enabled = false;
-				Camera.main.GetComponent<UserInput> ().enabled = true;
+				if (player)
+						player.GetComponent<UserInput> ().enabled = true;
 				Screen.showCursor = false;
 				ResourceManager.MenuOpen = false;
 				released = false;
@@ -61,6 +63,7 @@ public class PauseMenu : Menu
 		private void SaveGame ()
 		{
 				GetComponent<PauseMenu> ().enabled = false;
+				Debug.Log (GetComponent<PauseMenu> ().enabled);
 				SaveMenu saveMenu = GetComponent<SaveMenu> ();
 				if (saveMenu) {
 						saveMenu.enabled = true;

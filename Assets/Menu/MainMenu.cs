@@ -11,6 +11,7 @@ public class MainMenu : Menu
 
 		protected override void HandleButton (string text)
 		{
+				base.HandleButton (text);
 				switch (text) {
 				case "New Game":
 						NewGame ();
@@ -32,7 +33,7 @@ public class MainMenu : Menu
 		private void NewGame ()
 		{
 				ResourceManager.MenuOpen = false;
-				Application.LoadLevel ("Map");
+				Application.LoadLevel ("Map2");
 				Time.timeScale = 1.0f;
 		}
 

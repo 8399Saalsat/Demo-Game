@@ -30,6 +30,17 @@ public class Tank : Unit
 				}
 				
 		}
+		protected override void HandleLoadedProperty (JsonTextReader reader, string propertyName, object readValue)
+		{
+				base.HandleLoadedProperty (reader, propertyName, readValue);
+				switch (propertyName) {
+				case "AimRotation":
+						aimRotation = LoadManager.LoadQuaternion (reader);
+						break;
+				default:
+						break;
+				}
+		}
 
 		public override void SaveDetails (JsonWriter writer)
 		{

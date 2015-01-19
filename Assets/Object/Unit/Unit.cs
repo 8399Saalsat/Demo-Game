@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using RTS;
 using Newtonsoft.Json;
 
@@ -7,6 +8,10 @@ public class Unit : WorldObject
 {
 		public float moveSpeed;
 		public float rotateSpeed;
+		public AudioClip driveSound;
+		public AudioClip moveSound;
+		public float driveVolume = 0.5f;
+		public float moveVolume = 1.0f;
 
 		protected bool moving;
 		protected bool rotating;
@@ -14,6 +19,7 @@ public class Unit : WorldObject
 		private Vector3 destination;
 		private Quaternion targetRotation;
 		private GameObject destinationTarget;
+		private int loadedDestinationTargetId = -1;
 
 		protected override void Awake ()
 		{
@@ -23,6 +29,9 @@ public class Unit : WorldObject
 		protected override void Start ()
 		{
 				base.Start ();
+				if (player && loadedSavedValues && loadedDestinationTargetId >= 0) {
+						destinationTarget = player.GetObjectForId (loadedDestinationTargetId).gameObject;
+				}
 		}
 	
 		protected override void Update ()
@@ -39,12 +48,35 @@ public class Unit : WorldObject
 				base.OnGUI ();
 		}
 
+		protected override void InitializeAudio ()
+		{
+				base.InitializeAudio ();
+				List<AudioClip> sounds = new List<AudioClip> ();
+				List<float> volumes = new List<float> ();
+				if (driveVolume < 0.0f)
+						driveVolume = 0.0f;
+				if (driveVolume > 1.0f)
+						driveVolume = 1.0f;
+				sounds.Add (driveSound);
+				volumes.Add (driveVolume);
+
+				if (moveVolume < 0.0f)
+						moveVolume = 0.0f;
+				if (moveVolume > 1.0f)
+						moveVolume = 1.0f;
+				sounds.Add (moveSound);
+				volumes.Add (moveVolume);
+		
+				audioElement.Add (sounds, volumes);
+
+		}
+
 		public override void SetHoverState (GameObject hoverObject)
 		{
 				base.SetHoverState (hoverObject);
 				if (player && player.human && currentlySelected) {
 						bool moveHover = false;
-						if (hoverObject.name == "Ground")
+						if (WorkManager.ObjectIsGround (hoverObject))
 								moveHover = true;
 						else {
 								Resource resource = hoverObject.transform.parent.GetComponent<Resource> ();
@@ -65,7 +97,7 @@ public class Unit : WorldObject
 								if (resource && resource.isEmpty ())
 										clickedOnEmptyResource = true;
 						}
-						if ((hitObject.name == "Ground" || clickedOnEmptyResource) && hitPoint != ResourceManager.InvalidPosition) {
+						if ((WorkManager.ObjectIsGround (hitObject) || clickedOnEmptyResource) && hitPoint != ResourceManager.InvalidPosition) {
 								float x = hitPoint.x;
 								float y = hitPoint.y + player.SelectedObject.transform.position.y;
 								float z = hitPoint.z;
@@ -88,8 +120,33 @@ public class Unit : WorldObject
 								SaveManager.WriteInt (writer, "DestinationTargetId", destinationObject.ObjectId);	
 				}
 		}
+		protected override void HandleLoadedProperty (JsonTextReader reader, string propertyName, object readValue)
+		{
+				base.HandleLoadedProperty (reader, propertyName, readValue);
+				switch (propertyName) {
+				case "Moving":
+						moving = (bool)readValue;
+						break;
+				case "Rotating":
+						rotating = (bool)readValue;
+						break;
+				case "Destination":
+						destination = LoadManager.LoadVector (reader);
+						break;
+				case "TargetRotation":
+						targetRotation = LoadManager.LoadQuaternion (reader);
+						break;
+				case "DestinationTargetId":
+						loadedDestinationTargetId = (int)(System.Int64)readValue;
+						break;
+				default:
+						break;
+				}
+		}
 		public virtual void StartMove (Vector3 destination)
 		{
+				if (audioElement != null)
+						audioElement.Play (moveSound);
 				this.destination = destination;
 				destinationTarget = null;
 				targetRotation = Quaternion.LookRotation (destination - transform.position);
@@ -114,6 +171,8 @@ public class Unit : WorldObject
 				CalculateBounds ();
 				Quaternion inverseTargetRotation = new Quaternion (-targetRotation.x, -targetRotation.y, -targetRotation.z, -targetRotation.w);
 				if (transform.rotation == targetRotation || transform.rotation == inverseTargetRotation) {
+						if (audioElement != null)
+								audioElement.Play (driveSound);
 						rotating = false;
 						moving = true;
 						if (destinationTarget)
@@ -127,6 +186,8 @@ public class Unit : WorldObject
 		{
 				transform.position = Vector3.MoveTowards (transform.position, destination, Time.deltaTime * moveSpeed);
 				if (transform.position == destination) {
+						if (audioElement != null)
+								audioElement.Stop (driveSound);
 						movingIntoPosition = false;
 						moving = false;
 				}

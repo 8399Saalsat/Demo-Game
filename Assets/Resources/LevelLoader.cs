@@ -18,6 +18,18 @@ public class LevelLoader : MonoBehaviour
 				} else {
 						Destroy (this.gameObject);
 				}
+				if (initialized) {
+						SelectPlayerMenu menu = GameObject.FindObjectOfType (typeof(SelectPlayerMenu)) as SelectPlayerMenu;
+						if (!menu) {
+								//game was lauched inside a map rather than the main menu
+								Player[] players = GameObject.FindObjectsOfType (typeof(Player)) as Player[];
+								foreach (Player player in players) {
+										if (player.human) {
+												PlayerManager.SelectPlayer (player.playerName, 0);
+										}
+								}
+						}
+				}
 		}
 
 		void OnLevelWasLoaded ()

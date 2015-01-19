@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using RTS;
 
 public class Menu : MonoBehaviour
@@ -7,12 +8,25 @@ public class Menu : MonoBehaviour
 
 		public GUISkin mySkin;
 		public Texture2D header;
+		public AudioClip clickSound;
+		public float ClickVolume = 1.0f;
+
+		private AudioElement audioElement;
 
 		protected string[] buttons;
 
 		protected virtual void Start ()
 		{
 				SetButtons ();
+				if (ClickVolume < 0.0f)
+						ClickVolume = 0.0f;
+				if (ClickVolume > 1.0f)
+						ClickVolume = 1.0f;
+				List<AudioClip> sounds = new List<AudioClip> ();
+				List <float> volumes = new List<float> ();
+				sounds.Add (clickSound);
+				volumes.Add (ClickVolume);
+				audioElement = new AudioElement (sounds, volumes, "Menu", null);
 		}
 
 		protected virtual void OnGUI ()
@@ -59,6 +73,8 @@ public class Menu : MonoBehaviour
 		protected virtual void HandleButton (string text)
 		{
 				//child class needs to handle buttons here
+				if (audioElement != null)
+						audioElement.Play (clickSound);
 		}
 
 		protected virtual float GetMenuHeight ()

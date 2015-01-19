@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using RTS;
 
 public class SaveMenu : MonoBehaviour
@@ -7,7 +8,10 @@ public class SaveMenu : MonoBehaviour
 
 		public GUISkin mySkin;
 		public GUISkin selectionSkin;
-
+		public AudioClip clickSound;
+		public float clickVolume = 1.0f;
+	
+		private AudioElement audioElement;
 		private string saveName = "NewGame";
 		private ConfirmDialog confirmDialog = new ConfirmDialog ();
 
@@ -15,6 +19,15 @@ public class SaveMenu : MonoBehaviour
 		void Start ()
 		{
 				Activate ();
+				if (clickVolume < 0.0f)
+						clickVolume = 0.0f;
+				if (clickVolume > 1.0f)
+						clickVolume = 1.0f;
+				List<AudioClip> sounds = new List<AudioClip> ();
+				List<float> volumes = new List<float> ();
+				sounds.Add (clickSound);
+				volumes.Add (clickVolume);
+				audioElement = new AudioElement (sounds, volumes, "SelectPlayerMenu", null);
 		}
 	
 		// Update is called once per frame
@@ -47,6 +60,7 @@ public class SaveMenu : MonoBehaviour
 						confirmDialog.EndConfirmation ();
 				} else {
 						if (SelectionList.MouseDoubleClick ()) {
+								PlayClick ();
 								saveName = SelectionList.GetCurrentEntry ();
 								StartSave ();
 						}
@@ -57,6 +71,12 @@ public class SaveMenu : MonoBehaviour
 				if (Event.current.keyCode == KeyCode.Return)
 						StartSave ();
 
+		}
+
+		private void PlayClick ()
+		{
+				if (audioElement != null)
+						audioElement.Play (clickSound);
 		}
 
 		public void Activate ()
@@ -80,10 +100,12 @@ public class SaveMenu : MonoBehaviour
 				float leftPos = ResourceManager.Padding;
 				float topPos = menuHeight - ResourceManager.Padding - ResourceManager.ButtonHeight;
 				if (GUI.Button (new Rect (leftPos, topPos, ResourceManager.ButtonWidth, ResourceManager.ButtonHeight), "Save Game")) {
+						PlayClick ();
 						StartSave ();
 				}
 				leftPos += ResourceManager.ButtonWidth + ResourceManager.Padding;
 				if (GUI.Button (new Rect (leftPos, topPos, ResourceManager.ButtonWidth, ResourceManager.ButtonHeight), "Cancel")) {
+						PlayClick ();
 						CancelSave ();
 				}
 				//text area for player to type new name
@@ -121,7 +143,7 @@ public class SaveMenu : MonoBehaviour
 		private void StartSave ()
 		{
 				if (SelectionList.Contains (saveName))
-						confirmDialog.StartConfirmation ();
+						confirmDialog.StartConfirmation (clickSound, audioElement);
 				else
 						SaveGame ();
 		}

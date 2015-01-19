@@ -1,20 +1,29 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using RTS;
 using Newtonsoft.Json;
 
 public class Worker : Unit
 {
 		public int buildSpeed;
+		public AudioClip finishedJobSound;
+		public float finishedJobVolume = 1.0f;
 
 		private Building currentProject;
 		private bool building = false;
 		private float amountBuilt = 0.0f;
+		private int loadedProjectId = -1;
 
 		protected override void Start ()
 		{
 				base.Start ();
 				actions = new string[] {"Refinery", "WarFactory"};
+				if (player && loadedSavedValues && loadedProjectId >= 0) {
+						WorldObject obj = player.GetObjectForId (loadedProjectId);
+						if (obj.GetType ().IsSubclassOf (typeof(Building)))
+								currentProject = (Building)obj;
+				}
 		}
 
 		protected override void Update ()
@@ -27,10 +36,45 @@ public class Worker : Unit
 								if (amount > 0) {
 										amountBuilt -= amount;
 										currentProject.Construct (amount);
-										if (!currentProject.UnderConstruction ())
+										if (!currentProject.UnderConstruction ()) {
+												if (audioElement != null)
+														audioElement.Play (finishedJobSound);
 												building = false;
+										}
 								}
 						}
+				}
+		}
+
+		protected override void InitializeAudio ()
+		{
+				base.InitializeAudio ();
+				if (finishedJobVolume < 0.0f)
+						finishedJobVolume = 0.0f;
+				if (finishedJobVolume > 1.0f)
+						finishedJobVolume = 1.0f;
+				List<AudioClip> sounds = new List<AudioClip> ();
+				List<float> volumes = new List<float> ();
+				sounds.Add (finishedJobSound);
+				volumes.Add (finishedJobVolume);
+				audioElement.Add (sounds, volumes);
+		}
+
+		protected override void HandleLoadedProperty (JsonTextReader reader, string propertyName, object readValue)
+		{
+				base.HandleLoadedProperty (reader, propertyName, readValue);
+				switch (propertyName) {
+				case "Building":
+						building = (bool)readValue;
+						break;
+				case "AmountBuilt":
+						amountBuilt = (float)(double)readValue;
+						break;
+				case "CurrentProjId":
+						loadedProjectId = (int)(System.Int64)readValue;
+						break;
+				default:
+						break;
 				}
 		}
 
@@ -73,7 +117,7 @@ public class Worker : Unit
 		public override void MouseClick (GameObject hitObject, Vector3 hitPoint, Player controller)
 		{
 				bool doBase = true;
-				if (player && player.human && currentlySelected && hitObject.name != "Ground") {
+				if (player && player.human && currentlySelected && !WorkManager.ObjectIsGround (hitObject)) {
 						Building building = hitObject.transform.parent.GetComponent<Building> ();
 						if (building) {
 								if (building.UnderConstruction ()) {

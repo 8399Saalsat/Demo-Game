@@ -9,6 +9,8 @@ public class HUD : MonoBehaviour
 		public int LeftOffset { get { return LeftSideOffset (); } }
 		public int BottomOffset { get { return BottomSideOffset (); } }
 		public int TopOffset { get { return TopSideOffset (); } }
+		public AudioClip clickSound;
+		public float clickVolume = 1.0f;
 		
 		
 		public GUISkin resourceSkin ;
@@ -64,6 +66,7 @@ public class HUD : MonoBehaviour
 		private float sliderValue;
 		private int buildAreaHeight = 0;
 		private CursorState previousCursorState;
+		private AudioElement audioElement;
 
 		// Use this for initialization
 		void Start ()
@@ -107,6 +110,11 @@ public class HUD : MonoBehaviour
 						}
 				}
 				ResourceManager.SetResourceHealthBarTextures (resourceHealthBarTextures);
+				List<AudioClip> sounds = new List<AudioClip> ();
+				List<float> volumes = new List<float> ();
+				sounds.Add (clickSound);
+				volumes.Add (clickVolume);
+				audioElement = new AudioElement (sounds, volumes, "HUD", null);
 		}
 	
 		void OnGUI ()
@@ -118,6 +126,12 @@ public class HUD : MonoBehaviour
 				DrawMouseCursor ();
 				DrawPlayerDetails ();
 			
+		}
+
+		private void PlaySound ()
+		{
+				if (audioElement != null)
+						audioElement.Play (clickSound);
 		}
 
 		private void DrawOrdersBar ()
@@ -145,22 +159,6 @@ public class HUD : MonoBehaviour
 						int leftPos = BUILD_IMAGE_WIDTH + SCROLL_BAR_WIDTH / 2;
 						int topPos = buildAreaHeight + BUTTON_SPACING;
 						GUI.Label (new Rect (leftPos, topPos, ORDERS_BAR_WIDTH, SELECTION_NAME_HEIGHT), selectionName);
-				}
-			
-				int padding = 7;
-				int buttonWidth = ORDERS_BAR_WIDTH - 2 * padding - SCROLL_BAR_WIDTH;
-				int buttonHeight = RESOURCE_BAR_HEIGHT - 2 * padding;
-				int left = Screen.width - ORDERS_BAR_WIDTH / 2 - buttonWidth / 2 + SCROLL_BAR_WIDTH / 2;
-				Rect menuButtonPosition = new Rect (left, padding, buttonWidth, buttonHeight);
-
-				if (GUI.Button (menuButtonPosition, "Menu")) {
-						Time.timeScale = 0.0f;
-						PauseMenu pauseMenu = GetComponent<PauseMenu> ();
-						if (pauseMenu)
-								pauseMenu.enabled = true;
-						UserInput userInput = Camera.main.GetComponent<UserInput> ();
-						if (userInput)
-								userInput.enabled = false;
 				}
 				GUI.EndGroup ();
 		}
@@ -197,6 +195,23 @@ public class HUD : MonoBehaviour
 				iconLeft += TEXT_WIDTH;
 				textLeft += TEXT_WIDTH;
 				DrawResourceIcon (ResourceType.Power, iconLeft, textLeft, topPos);
+
+				int padding = 7;
+				int buttonWidth = ORDERS_BAR_WIDTH - 2 * padding - SCROLL_BAR_WIDTH;
+				int buttonHeight = RESOURCE_BAR_HEIGHT - 2 * padding;
+				int left = Screen.width - ORDERS_BAR_WIDTH / 2 - buttonWidth / 2 + SCROLL_BAR_WIDTH / 2;
+				Rect menuButtonPosition = new Rect (left, padding, buttonWidth, buttonHeight);
+		
+				if (GUI.Button (menuButtonPosition, "Menu")) {
+						PlaySound ();
+						Time.timeScale = 0.0f;
+						PauseMenu pauseMenu = GetComponent<PauseMenu> ();
+						if (pauseMenu)
+								pauseMenu.enabled = true;
+						UserInput userInput = Camera.main.GetComponent<UserInput> ();
+						if (userInput)
+								userInput.enabled = false;
+				}
 				GUI.EndGroup ();
 		}
 		private void DrawResourceIcon (ResourceType type, int iconLeft, int textLeft, int topPos)
@@ -306,8 +321,10 @@ public class HUD : MonoBehaviour
 						if (action) {
 								//create the button and handle the click of that button
 								if (GUI.Button (pos, action)) {
-										if (player.SelectedObject)
+										if (player.SelectedObject) {
 												player.SelectedObject.PerformAction (actions [i]);
+												PlaySound ();
+										}
 								}
 						}
 				}
@@ -325,14 +342,16 @@ public class HUD : MonoBehaviour
 				int width = BUILD_IMAGE_WIDTH / 2;
 				int height = BUILD_IMAGE_HEIGHT / 2;
 				if (GUI.Button (new Rect (leftPos, topPos, width, height), building.sellImage)) {
+						PlaySound ();
 						building.Sell ();
 				}
 				if (building.hasSpawnPoint ()) {
 						leftPos += width + BUTTON_SPACING;
 						if (GUI.Button (new Rect (leftPos, topPos, width, height), building.rallyPointImage)) {
-								if (activeCursorState != CursorState.RallyPoint /*&& previousCursorState != CursorState.RallyPoint*/)
+								if (activeCursorState != CursorState.RallyPoint /*&& previousCursorState != CursorState.RallyPoint*/) {
+										PlaySound ();
 										SetCursorState (CursorState.RallyPoint);
-								else {
+								} else {
 										//hack to ensure toggle between RallyPoint and not works
 										SetCursorState (CursorState.PanRight);
 										SetCursorState (CursorState.Select);

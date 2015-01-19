@@ -150,7 +150,7 @@ public class Player : MonoBehaviour
 
 				foreach (Vector3 corner in corners) {
 						GameObject hitObject = WorkManager.FindHitObject (corner);
-						if (hitObject && hitObject.name != "Ground") {
+						if (hitObject && !WorkManager.ObjectIsGround (hitObject)) {
 								WorldObject worldObject = hitObject.transform.parent.GetComponent<WorldObject> ();
 								if (worldObject && placeBounds.Intersects (worldObject.GetSelectionBounds ()))
 										canPlace = false;

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using RTS;
 using Newtonsoft.Json;
 
@@ -10,6 +11,13 @@ public class Harvester : Unit
 		public float collectionAmount;
 		public float depositAmount;
 		public Building resourceStore;
+		public AudioClip emptyHarvestSound;
+		public AudioClip harvestSound;
+		public AudioClip startHarvestSound;
+
+		public float emptyHarvestVolume = 0.5f;
+		public float harvestVolume = 0.5f;
+		public float startHarvestVolume = 1.0f;
 	
 		private bool harvesting = false;
 		private bool emptying = false;
@@ -17,11 +25,28 @@ public class Harvester : Unit
 		private ResourceType harvestType;
 		private Resource resourceDeposit;
 		private float currentDeposit = 0.0f;
+		private int loadedDepositId = -1;
+		private int loadedStoreId = -1;
 		
 		protected override void Start ()
 		{
 				base.Start ();
-				harvestType = ResourceType.Unknown;
+				if (loadedSavedValues) {
+						if (player) {
+								if (loadedStoreId >= 0) {
+										WorldObject obj = player.GetObjectForId (loadedStoreId);
+										if (obj.GetType ().IsSubclassOf (typeof(Building)))
+												resourceStore = (Building)obj;
+								}
+								if (loadedDepositId >= 0) {
+										WorldObject obj = player.GetObjectForId (loadedDepositId);
+										if (obj.GetType ().IsSubclassOf (typeof(Resource)))
+												resourceDeposit = (Resource)obj;
+								}
+						}
+				} else {
+						harvestType = ResourceType.Unknown;
+				}
 		}
 		
 		protected override void Update ()
@@ -60,6 +85,35 @@ public class Harvester : Unit
 				}
 		}
 
+		protected override void InitializeAudio ()
+		{
+				base.InitializeAudio ();
+				List<AudioClip> sounds = new List<AudioClip> ();
+				List<float> volumes = new List<float> ();
+				if (emptyHarvestVolume < 0.0f)
+						emptyHarvestVolume = 0.0f;
+				if (emptyHarvestVolume > 1.0f)
+						attackVolume = 1.0f;
+				sounds.Add (emptyHarvestSound);
+				volumes.Add (emptyHarvestVolume);
+		
+				if (harvestVolume < 0.0f)
+						harvestVolume = 0.0f;
+				if (harvestVolume > 1.0f)
+						harvestVolume = 1.0f;
+				sounds.Add (harvestSound);
+				volumes.Add (harvestVolume);
+		
+				if (startHarvestVolume < 0.0f)
+						startHarvestVolume = 0.0f;
+				if (startHarvestVolume > 1.0f)
+						startHarvestVolume = 1.0f;
+				sounds.Add (startHarvestSound);
+				volumes.Add (startHarvestVolume);
+		
+				audioElement.Add (sounds, volumes);
+		}
+
 		public override void SaveDetails (JsonWriter writer)
 		{
 				base.SaveDetails (writer);
@@ -73,12 +127,42 @@ public class Harvester : Unit
 				if (resourceStore)
 						SaveManager.WriteInt (writer, "ResourceStoreId", resourceStore.ObjectId);
 		}
+
+		protected override void HandleLoadedProperty (JsonTextReader reader, string propertyName, object readValue)
+		{
+				base.HandleLoadedProperty (reader, propertyName, readValue);
+				switch (propertyName) {
+				case "Harvesting":
+						harvesting = (bool)readValue;
+						break;
+				case "Emptying":
+						emptying = (bool)readValue;
+						break;
+				case "CurrentLoad":
+						currentLoad = (float)(double)readValue;
+						break;
+				case "CurrentDeposit":
+						currentDeposit = (float)(double)readValue;
+						break;
+				case "HarvestType":
+						harvestType = WorkManager.GetResourceType ((string)readValue);
+						break;
+				case "ResourceDepositId":
+						loadedDepositId = (int)(System.Int64)readValue;
+						break;
+				case "ResourceStoreId":
+						loadedStoreId = (int)(System.Int64)readValue;
+						break;
+				default:
+						break;
+				}
+		}
 		
 		public override void SetHoverState (GameObject hoverObject)
 		{
 				base.SetHoverState (hoverObject);
 				if (player && player.human && currentlySelected) {
-						if (hoverObject.name != "Ground") {
+						if (!WorkManager.ObjectIsGround (hoverObject)) {
 								Resource resource = hoverObject.transform.parent.GetComponent<Resource> ();
 								if (resource && !resource.isEmpty ())
 										player.hud.SetCursorState (CursorState.Harvest);
@@ -90,7 +174,7 @@ public class Harvester : Unit
 		{
 				base.MouseClick (hitObject, hitPoint, controller);
 				if (player && player.human) {
-						if (hitObject.name != "Ground") {
+						if (!WorkManager.ObjectIsGround (hitObject)) {
 								Resource resource = hitObject.transform.parent.GetComponent<Resource> ();
 								if (resource && !resource.isEmpty ()) {
 										if (player.SelectedObject)
@@ -126,6 +210,8 @@ public class Harvester : Unit
 		
 		private void StartHarvest (Resource resource)
 		{
+				if (audioElement != null)
+						audioElement.Play (startHarvestSound);
 				resourceDeposit = resource;
 				StartMove (resource.transform.position, resource.gameObject);
 				if (harvestType == ResourceType.Unknown || harvestType != resource.GetResourceType ()) {
@@ -143,6 +229,8 @@ public class Harvester : Unit
 		
 		private void Collect ()
 		{
+				if (audioElement != null)
+						audioElement.Play (harvestSound);
 				float collect = collectionAmount * Time.deltaTime;
 				//make sure that the harvester cannot collect more than it can carry
 				if (currentLoad + collect > capacity)
@@ -153,6 +241,8 @@ public class Harvester : Unit
 
 		private void Deposit ()
 		{
+				if (audioElement != null)
+						audioElement.Play (emptyHarvestSound);
 				currentDeposit += depositAmount * Time.deltaTime;
 				int deposit = Mathf.FloorToInt (currentDeposit);
 				if (deposit >= 1) {

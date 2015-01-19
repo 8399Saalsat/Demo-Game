@@ -17,7 +17,14 @@ public class WorldObject : MonoBehaviour
 		public float weaponRange = 10.0f;
 		public float weaponAimSpeed = 5f;
 		public float weaponRechargeTime = 1.0f;
+		public AudioClip attackSound;
+		public AudioClip selectSound;
+		public AudioClip useWeaponSound;
+		public float attackVolume = 1.0f;
+		public float selectVolume = 1.0f;
+		public float useWeaponVolume = 1.0f;
 
+		protected AudioElement audioElement;
 		protected Player player;
 		protected string[] actions = {};
 		protected bool currentlySelected = false;
@@ -48,11 +55,13 @@ public class WorldObject : MonoBehaviour
 				SetPlayer ();
 				if (player) {
 						if (loadedSavedValues) {
-								SetTeamColor ();
-								if (loadedTargetId >= 0)
+								if (loadedSavedValues && loadedTargetId >= 0)
 										target = player.GetObjectForId (loadedTargetId);
-						} 	
+								else
+										SetTeamColor ();
+						}								
 				}
+				InitializeAudio ();
 		}
 	
 		// Update is called once per frame
@@ -67,6 +76,34 @@ public class WorldObject : MonoBehaviour
 		{
 				if (currentlySelected)
 						DrawSelection ();
+		}
+
+		protected virtual void InitializeAudio ()
+		{
+				List<AudioClip> sounds = new List<AudioClip> ();
+				List<float> volumes = new List<float> ();
+				if (attackVolume < 0.0f)
+						attackVolume = 0.0f;
+				if (attackVolume > 1.0f)
+						attackVolume = 1.0f;
+				sounds.Add (attackSound);
+				volumes.Add (attackVolume);
+
+				if (selectVolume < 0.0f)
+						selectVolume = 0.0f;
+				if (selectVolume > 1.0f)
+						selectVolume = 1.0f;
+				sounds.Add (selectSound);
+				volumes.Add (selectVolume);
+
+				if (useWeaponVolume < 0.0f)
+						useWeaponVolume = 0.0f;
+				if (useWeaponVolume > 1.0f)
+						useWeaponVolume = 1.0f;
+				sounds.Add (useWeaponSound);
+				volumes.Add (useWeaponVolume);
+
+				audioElement = new AudioElement (sounds, volumes, objectName + ObjectId, this.transform);
 		}
 		
 		protected virtual void CalculateCurrentHealth (float lowSplit, float highSplit)
@@ -89,6 +126,8 @@ public class WorldObject : MonoBehaviour
 
 		protected virtual void BeginAttack (WorldObject target)
 		{
+				if (audioElement != null)
+						audioElement.Play (attackSound);
 				this.target = target;
 				if (TargetInRange ()) {
 						attacking = true;
@@ -100,8 +139,11 @@ public class WorldObject : MonoBehaviour
 		public virtual void SetSelection (bool selected, Rect playingArea)
 		{
 				currentlySelected = selected;
-				if (selected)
+				if (selected) {
+						if (audioElement != null)
+								audioElement.Play (selectSound);
 						this.playingArea = playingArea;
+				}
 		}
 
 		public virtual string[] GetActions ()
@@ -116,7 +158,7 @@ public class WorldObject : MonoBehaviour
 
 		public virtual void MouseClick (GameObject hitObject, Vector3 hitPoint, Player controller)
 		{
-				if (currentlySelected && hitObject && hitObject.name != "Ground") {
+				if (currentlySelected && hitObject && !WorkManager.ObjectIsGround (hitObject)) {
 						WorldObject worldObject = hitObject.transform.parent.GetComponent < WorldObject> ();
 						if (worldObject) {
 								Resource resource = hitObject.transform.parent.GetComponent<Resource> ();
@@ -220,6 +262,8 @@ public class WorldObject : MonoBehaviour
 		}
 		protected virtual void UseWeapon ()
 		{
+				if (audioElement != null)
+						audioElement.Play (useWeaponSound);
 				currentWeaponChargeTime = 0.0f;
 		}
 
@@ -279,7 +323,7 @@ public class WorldObject : MonoBehaviour
 		{
 				if (player && player.human && currentlySelected) {
 						//something other than the ground is being hovered over
-						if (hoverObject.name != "Ground") {
+						if (!WorkManager.ObjectIsGround (hoverObject)) {
 								Player owner = hoverObject.transform.root.GetComponent< Player > ();
 								Unit unit = hoverObject.transform.parent.GetComponent< Unit > ();
 								Building building = hoverObject.transform.parent.GetComponent< Building > ();
@@ -375,7 +419,7 @@ public class WorldObject : MonoBehaviour
 						transform.localRotation = LoadManager.LoadQuaternion (reader);
 						break;
 				case "Scale":
-						hitPoints = (int)(System.Int64)readValue;
+						transform.localScale = LoadManager.LoadVector (reader);
 						break;
 				case "HitPoints":
 						hitPoints = (int)(System.Int64)readValue;

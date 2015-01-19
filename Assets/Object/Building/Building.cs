@@ -9,6 +9,8 @@ public class Building : WorldObject
 		public float maxBuildProgress;
 		public Texture2D rallyPointImage;
 		public Texture2D sellImage;
+		public AudioClip finishedJobSound;
+		public float finishedJobVolume = 1.0f;
 
 		protected Queue <string> buildQueue;
 		protected Vector3 rallyPoint;
@@ -47,6 +49,20 @@ public class Building : WorldObject
 						DrawBuildProgress ();
 		}
 
+		protected override void InitializeAudio ()
+		{
+				base.InitializeAudio ();
+				if (finishedJobVolume < 0.0f)
+						finishedJobVolume = 0.0f;
+				if (finishedJobVolume > 1.0f)
+						finishedJobVolume = 1.0f;
+				List<AudioClip> sounds = new List<AudioClip> ();
+				List<float> volumes = new List<float> ();
+				sounds.Add (finishedJobSound);
+				volumes.Add (finishedJobVolume);
+				audioElement.Add (sounds, volumes);
+		}
+
 		public override void SetSelection (bool selected, Rect playingArea)
 		{
 				base.SetSelection (selected, playingArea);
@@ -75,7 +91,7 @@ public class Building : WorldObject
 		{
 				base.SetHoverState (hoverObject);
 				if (player && player.human && currentlySelected) {
-						if (hoverObject.name == "Ground") {
+						if (WorkManager.ObjectIsGround (hoverObject)) {
 								if (player.hud.GetCursorState () == CursorState.RallyPoint)
 								//if (settingRallyPoint)
 										player.hud.SetCursorState (CursorState.RallyPoint);
@@ -87,7 +103,7 @@ public class Building : WorldObject
 		{
 				base.MouseClick (hitObject, hitPoint, controller);
 				if (player && player.human && currentlySelected) {
-						if (hitObject.name == "Ground") {
+						if (WorkManager.ObjectIsGround (hitObject)) {
 								if (/*player.hud.GetPreviousCursorState () == CursorState.RallyPoint ||*/ player.hud.GetCursorState () == CursorState.RallyPoint && hitPoint != ResourceManager.InvalidPosition) {
 										SetRallyPoint (hitPoint);
 										player.hud.SetCursorState (CursorState.Select);
@@ -104,7 +120,8 @@ public class Building : WorldObject
 				SaveManager.WriteVector (writer, "RallyPoint", rallyPoint);
 				SaveManager.WriteFloat (writer, "BuildProgress", currentBuildProgress);
 				SaveManager.WriteStringArray (writer, "BuildQueue", buildQueue.ToArray ());
-				SaveManager.WriteRect (writer, "PlayingArea", playingArea);
+				if (needsBuilding)
+						SaveManager.WriteRect (writer, "PlayingArea", playingArea);
 		}
 
 		protected void CreateUnit (string unitName)
@@ -117,8 +134,11 @@ public class Building : WorldObject
 				if (buildQueue.Count > 0) {
 						currentBuildProgress += Time.deltaTime * RTS.ResourceManager.BuildSpeed;
 						if (currentBuildProgress > maxBuildProgress) {
-								if (player)
+								if (player) {
+										if (audioElement != null)
+												audioElement.Play (finishedJobSound);
 										player.AddUnit (buildQueue.Dequeue (), spawnPoint, rallyPoint, transform.rotation, this);
+								}
 								currentBuildProgress = 0.0f;
 						}
 				}
