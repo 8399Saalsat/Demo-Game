@@ -8,13 +8,15 @@ public class UserInput : MonoBehaviour
 		public bool keyboardMoveCamera = true;
 		public bool zoomEnabled = true;
 		public bool rotateEnabled = true;
-		public Player player;
+		//	public Player player;
 
+		private Player player;
 		private bool rotating = false;
 		// Use this for initialization
 
 		void Start ()
 		{
+				InitPlayer ();
 		}
 
 		void Update ()
@@ -45,6 +47,11 @@ public class UserInput : MonoBehaviour
 				}
 		
 		}
+		
+		private void InitPlayer ()
+		{
+				player = transform.root.GetComponent<Player> ();
+		}
 
 		private void OpenPauseMenu ()
 		{
@@ -59,7 +66,7 @@ public class UserInput : MonoBehaviour
 		private void KeyboardMoveCamera ()
 		{
 				Vector3 movement = new Vector3 (0, 0, 0);
-				Vector3 origin = transform.position;
+				Vector3 origin = Camera.main.transform.position;
 				Vector3 destination = origin;
 				float h = Input.GetAxis ("Horizontal");
 				float v = Input.GetAxis ("Vertical");
@@ -71,13 +78,13 @@ public class UserInput : MonoBehaviour
 						movement.z += ResourceManager.ScrollSpeed * v;
 				}
 				movement = movement.normalized;
-				movement = transform.TransformDirection (movement);
+				movement = Camera.main.transform.TransformDirection (movement);
 				movement.y = 0;
 		
 		
 				destination += movement;
 				if (destination != origin) {
-						transform.position = Vector3.MoveTowards (origin, destination, Time.deltaTime * ResourceManager.KeyboadScrollSpeed);
+						Camera.main.transform.position = Vector3.MoveTowards (origin, destination, Time.deltaTime * ResourceManager.KeyboadScrollSpeed);
 				}
 		
 		}
@@ -91,7 +98,7 @@ public class UserInput : MonoBehaviour
 				float speed = ResourceManager.ScrollSpeed;
 		
 				Vector3 movement = new Vector3 (0, 0, 0);
-				Vector3 origin = transform.position;
+				Vector3 origin = Camera.main.transform.position;
 				Vector3 destination = origin;
 		
 				if (xpos >= 0 && xpos < ResourceManager.ScrollWidth + player.hud.LeftOffset && player.hud.MouseInBounds ()) {
@@ -123,7 +130,7 @@ public class UserInput : MonoBehaviour
 						mouseScroll = true;
 				}
 		
-				movement = transform.TransformDirection (movement);
+				movement = Camera.main.transform.TransformDirection (movement);
 				speed = Mathf.Clamp (speed, 0, ResourceManager.MaxSpeed);
 		
 				movement.y = 0;
@@ -131,7 +138,7 @@ public class UserInput : MonoBehaviour
 				destination += movement;
 		
 				if (destination != origin) {
-						transform.position = Vector3.MoveTowards (origin, destination, Time.deltaTime * speed);
+						Camera.main.transform.position = Vector3.MoveTowards (origin, destination, Time.deltaTime * speed);
 				}
 				if (!mouseScroll) {
 						player.hud.SetCursorState (CursorState.Select);
@@ -141,11 +148,11 @@ public class UserInput : MonoBehaviour
 		private void Zoom ()
 		{
 				Vector3 movement = new Vector3 (0, 0, 0);
-				Vector3 origin = transform.position;
+				Vector3 origin = Camera.main.transform.position;
 				Vector3 destination = origin;
 		
 				movement.y += ResourceManager.ZoomSpeed * Input.GetAxis ("Mouse ScrollWheel");
-				movement = transform.TransformDirection (movement);
+				movement = Camera.main.transform.TransformDirection (movement);
 		
 				movement.x = 0;
 		
@@ -156,13 +163,13 @@ public class UserInput : MonoBehaviour
 				}
 		
 				if (destination != origin) {
-						transform.position = Vector3.MoveTowards (origin, destination, Time.deltaTime * ResourceManager.ZoomSpeed);
+						Camera.main.transform.position = Vector3.MoveTowards (origin, destination, Time.deltaTime * ResourceManager.ZoomSpeed);
 				}
 		}
 	
 		private void Rotate ()
 		{
-				Vector3 origin = transform.eulerAngles;
+				Vector3 origin = Camera.main.transform.eulerAngles;
 				Vector3 destination = origin;
 		
 				//if ((Input.GetKey (KeyCode.LeftAlt) || Input.GetKey (KeyCode.RightAlt)) && Input.GetMouseButton (1)) {
@@ -175,7 +182,7 @@ public class UserInput : MonoBehaviour
 						rotating = false;
 				}
 				if (destination != origin) {
-						transform.eulerAngles = Vector3.MoveTowards (origin, destination, Time.deltaTime * ResourceManager.RotateSpeed);
+						Camera.main.transform.eulerAngles = Vector3.MoveTowards (origin, destination, Time.deltaTime * ResourceManager.RotateSpeed);
 				}
 		}
 

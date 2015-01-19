@@ -184,8 +184,147 @@ public class Player : MonoBehaviour
 				SaveManager.WriteString (writer, "Playername", playerName);
 				SaveManager.WriteBoolean (writer, "Human", human);
 				SaveManager.WriteColor (writer, "TeamColor", teamColor);
-				SaveManager.SavePlayerResources (writer, resources);
+				SaveManager.SavePlayerResources (writer, resources, resourceLimits);
 				SaveManager.SavePlayerBuildings (writer, GetComponentsInChildren<Building> ());
 				SaveManager.SavePlayerUnits (writer, GetComponentsInChildren<Unit> ());
 		}
+		
+		public virtual void LoadDetails (JsonTextReader reader)
+		{
+				if (reader == null)
+						return;
+				string currValue = "";
+				while (reader.Read()) {
+						if (reader.Value != null) {
+								if (reader.TokenType == JsonToken.PropertyName) {
+										currValue = (string)reader.Value;
+								} else {
+										switch (currValue) {
+										case "Playename":
+												playerName = (string)reader.Value;
+												break;
+										case "Human":
+												human = (bool)reader.Value;
+												break;
+										default:
+												break;
+										}
+								}
+						} else if (reader.TokenType == JsonToken.StartObject || reader.TokenType == JsonToken.StartArray) {
+								switch (currValue) {
+								case "TeamColor":
+										teamColor = LoadManager.LoadColor (reader);
+										break;
+								case "Resources":
+										LoadResources (reader);
+										break;
+								case "Buildings":
+										LoadBuildings (reader);
+										break;
+								case "Units":
+										LoadUnits (reader);
+										break;
+								default:
+										break;
+								}
+						} else if (reader.TokenType == JsonToken.EndObject)
+								return;
+				}
+		}
+		
+		private void LoadResources (JsonTextReader reader)
+		{
+				if (reader == null)
+						return;
+				string currValue = "";
+				while (reader.Read()) {
+						if (reader.Value != null) {
+								if (reader.TokenType == JsonToken.PropertyName)
+										currValue = (string)reader.Value;
+								else {
+										switch (currValue) {
+										case "Money":
+												startMoney = (int)(System.Int64)reader.Value;
+												break;
+										case "Money_Limit":
+												startMoneyLimit = (int)(System.Int64)reader.Value;
+												break;
+										case "Power":
+												startPower = (int)(System.Int64)reader.Value;
+												break;
+										case "Power_Limit":
+												startPowerLimit = (int)(System.Int64)reader.Value;
+												break;
+										default:
+												break;
+										}
+								}
+						} else if (reader.TokenType == JsonToken.EndArray)
+								return;
+				}
+		}
+
+		private void LoadBuildings (JsonTextReader reader)
+		{
+				if (reader == null)
+						return;
+				Buildings buildings = GetComponentInChildren<Buildings> ();
+				string currValue = "";
+				string type = "";
+				while (reader.Read()) {
+						if (reader.Value != null) {
+								if (reader.TokenType == JsonToken.PropertyName)
+										currValue = (string)reader.Value;
+								else if (currValue == "Type") {
+										type = (string)reader.Value;
+										GameObject newObject = (GameObject)GameObject.Instantiate (ResourceManager.GetBuilding (type));
+										Building building = newObject.GetComponent<Building> ();
+										building.LoadDetails (reader);
+										building.transform.parent = buildings.transform;
+										building.SetPlayer ();
+										building.SetTeamColor ();
+										if (building.UnderConstruction ()) {
+												building.SetTransparentMaterial (allowedMaterial, true);
+										}
+								} 
+						} else if (reader.TokenType == JsonToken.EndArray)
+								return;
+				}
+		}
+
+		private void LoadUnits (JsonTextReader reader)
+		{
+				if (reader == null)
+						return;
+				Units units = GetComponentInChildren<Units> ();
+				string currValue = "";
+				string type = "";
+				while (reader.Read()) {
+						if (reader.Value != null) {
+								if (reader.TokenType == JsonToken.PropertyName)
+										currValue = (string)reader.Value;
+								else if (currValue == "Type") {
+										type = (string)reader.Value;
+										GameObject newObject = (GameObject)GameObject.Instantiate (ResourceManager.GetUnit (type));
+										Unit unit = newObject.GetComponent<Unit> ();
+										unit.LoadDetails (reader);
+										unit.transform.parent = units.transform;
+										unit.SetPlayer ();
+										unit.SetTeamColor ();
+								} 
+						} else if (reader.TokenType == JsonToken.EndArray)
+								return;
+				}
+		}
+		
+		public WorldObject GetObjectForId (int id)
+		{
+				WorldObject[] objects = GameObject.FindObjectsOfType (typeof(WorldObject)) as WorldObject[];
+				foreach (WorldObject obj in objects) {
+						if (obj.ObjectId == id)
+								return obj;
+				}
+				return null;
+		}
+
 }

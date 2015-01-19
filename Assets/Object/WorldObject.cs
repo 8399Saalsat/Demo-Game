@@ -29,9 +29,11 @@ public class WorldObject : MonoBehaviour
 		protected bool attacking = false;
 		protected bool movingIntoPosition = false;
 		protected bool aiming = false;
+		protected bool loadedSavedValues = false;
 
 		private List<Material> oldMaterials = new List<Material> ();
 		private float currentWeaponChargeTime;
+		private int loadedTargetId = -1;
 
 		protected virtual void Awake ()
 		{
@@ -44,8 +46,13 @@ public class WorldObject : MonoBehaviour
 		protected virtual void Start ()
 		{
 				SetPlayer ();
-				if (player)
-						SetTeamColor ();
+				if (player) {
+						if (loadedSavedValues) {
+								SetTeamColor ();
+								if (loadedTargetId >= 0)
+										target = player.GetObjectForId (loadedTargetId);
+						} 	
+				}
 		}
 	
 		// Update is called once per frame
@@ -73,7 +80,7 @@ public class WorldObject : MonoBehaviour
 						healthStyle.normal.background = ResourceManager.CriticalTexture;
 		}
 
-		protected void SetTeamColor ()
+		public void SetTeamColor ()
 		{
 				TeamColor[] teamColors = GetComponentsInChildren<TeamColor> ();
 				foreach (TeamColor teamColor in teamColors)
@@ -350,5 +357,68 @@ public class WorldObject : MonoBehaviour
 		public void SetPlayer ()
 		{
 				player = transform.root.GetComponentInChildren<Player> ();
+		}
+		
+		protected virtual void HandleLoadedProperty (JsonTextReader reader, string propertyName, object readValue)
+		{
+				switch (propertyName) {
+				case "Name":
+						objectName = (string)readValue;
+						break;
+				case "Id":
+						ObjectId = (int)(System.Int64)readValue;
+						break;
+				case "Position":
+						transform.localPosition = LoadManager.LoadVector (reader);
+						break;
+				case "Rotation":
+						transform.localRotation = LoadManager.LoadQuaternion (reader);
+						break;
+				case "Scale":
+						hitPoints = (int)(System.Int64)readValue;
+						break;
+				case "HitPoints":
+						hitPoints = (int)(System.Int64)readValue;
+						break;
+				case "Attacking":
+						attacking = (bool)readValue;
+						break;
+				case "MovingIntoPosition":
+						movingIntoPosition = (bool)readValue;
+						break;
+				case "Aiming":
+						aiming = (bool)readValue;
+						break;
+				case "CurrentWeaponChargeTime":
+						currentWeaponChargeTime = (float)(double)readValue;
+						break;
+				case "TargetId":
+						loadedTargetId = (int)(System.Int64)readValue;
+						break;
+				default :
+						break;
+				}
+		}
+		
+		public void LoadDetails (JsonTextReader reader)
+		{
+				while (reader.Read()) {
+						if (reader.Value != null) {
+								if (reader.TokenType == JsonToken.PropertyName) {
+										string propertyName = (string)reader.Value;
+										reader.Read ();
+										HandleLoadedProperty (reader, propertyName, reader.Value);
+								}
+						} else if (reader.TokenType == JsonToken.EndObject) {
+								selectionBounds = ResourceManager.InvalidBounds;
+								CalculateBounds ();
+								loadedSavedValues = true;
+								return;
+						}
+				}
+				//loaded position invalidates selection bounds, must recalculate
+				selectionBounds = ResourceManager.InvalidBounds;
+				CalculateBounds ();
+				loadedSavedValues = true;
 		}
 }

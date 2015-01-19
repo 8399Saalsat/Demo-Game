@@ -104,6 +104,7 @@ public class Building : WorldObject
 				SaveManager.WriteVector (writer, "RallyPoint", rallyPoint);
 				SaveManager.WriteFloat (writer, "BuildProgress", currentBuildProgress);
 				SaveManager.WriteStringArray (writer, "BuildQueue", buildQueue.ToArray ());
+				SaveManager.WriteRect (writer, "PlayingArea", playingArea);
 		}
 
 		protected void CreateUnit (string unitName)
@@ -200,5 +201,32 @@ public class Building : WorldObject
 				float spawnX = selectionBounds.center.x + transform.forward.x * selectionBounds.extents.x + transform.forward.x * 10;
 				float spawnZ = selectionBounds.center.z + transform.forward.z + selectionBounds.extents.z + transform.forward.z * 10;
 				spawnPoint = new Vector3 (spawnX, 0.0f, spawnZ);
+		}
+		
+		protected override void HandleLoadedProperty (JsonTextReader reader, string propertyName, object readValue)
+		{
+				base.HandleLoadedProperty (reader, propertyName, readValue);
+				switch (propertyName) {
+				case "NeedsBuilding":
+						needsBuilding = (bool)readValue;
+						break;
+				case "SpawnPoint":
+						spawnPoint = LoadManager.LoadVector (reader);
+						break;
+				case "RallyPoint":
+						rallyPoint = LoadManager.LoadVector (reader);
+						break;
+				case "BuildProgress":
+						currentBuildProgress = (float)(double)readValue;
+						break;
+				case "BuildQueue":
+						buildQueue = new Queue<string> (LoadManager.LoadStringArray (reader));
+						break;
+				case "PlayingArea":
+						playingArea = LoadManager.LoadRect (reader);
+						break;
+				default:
+						break;
+				}
 		}
 }

@@ -71,6 +71,7 @@ public class PauseMenu : Menu
 
 		private void ReturnToMainMenu ()
 		{
+				ResourceManager.LevelName = "";
 				Application.LoadLevel ("MainMenu");
 				Screen.showCursor = true;
 		}

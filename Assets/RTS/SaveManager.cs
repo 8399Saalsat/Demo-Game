@@ -201,7 +201,7 @@ namespace RTS
 						writer.WriteEndObject ();
 				}
 
-				public static void SavePlayerResources (JsonWriter writer, Dictionary< ResourceType, int > resources)
+				public static void SavePlayerResources (JsonWriter writer, Dictionary< ResourceType, int > resources, Dictionary< ResourceType, int > resourceLimits)
 				{
 						if (writer == null)
 								return;
@@ -212,6 +212,11 @@ namespace RTS
 								writer.WriteStartObject ();
 								WriteInt (writer, pair.Key.ToString (), pair.Value);
 								writer.WriteEndObject ();			
+						}
+						foreach (KeyValuePair<ResourceType, int> pair in resourceLimits) {
+								writer.WriteStartObject ();
+								WriteInt (writer, pair.Key.ToString () + "_Limit", pair.Value);
+								writer.WriteEndObject ();
 						}
 						writer.WriteEndArray ();
 				}
@@ -250,6 +255,13 @@ namespace RTS
 								writer.WriteValue (v);
 						}
 						writer.WriteEndArray ();
+				}
+				
+				public static void WriteRect (JsonWriter writer, string name, Rect rect)
+				{
+						writer.WritePropertyName (name);
+						writer.WriteStartObject ();
+						writer.WritePropertyName ("x");
 				}
 		}
 }
