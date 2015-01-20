@@ -60,4 +60,9 @@ public class Resource : WorldObject
 						break;
 				}
 		}
+
+		protected override bool ShouldMakeDecision ()
+		{
+				return false;
+		}
 }

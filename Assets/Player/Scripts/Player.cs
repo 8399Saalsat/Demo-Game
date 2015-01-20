@@ -109,6 +109,7 @@ public class Player : MonoBehaviour
 						tempBuilding.SetTransparentMaterial (notAllowedMaterial, true);
 						tempBuilding.SetColliders (false);
 						tempBuilding.SetPlayingArea (playingArea);
+						tempBuilding.hitPoints = 0;
 				} else
 						Destroy (newBuilding);
 		}
@@ -193,6 +194,12 @@ public class Player : MonoBehaviour
 				tempBuilding.SetColliders (true);
 				tempCreator.SetBuilding (tempBuilding);
 				tempBuilding.StartConstruction ();
+				RemoveResource (ResourceType.Money, tempBuilding.cost);
+		}
+
+		public void RemoveResource (ResourceType type, int amount)
+		{
+				resources [type] -= amount;
 		}
 
 		public virtual void SaveDetails (JsonWriter writer)

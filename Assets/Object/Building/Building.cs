@@ -49,6 +49,7 @@ public class Building : WorldObject
 						DrawBuildProgress ();
 		}
 
+
 		protected override void InitializeAudio ()
 		{
 				base.InitializeAudio ();
@@ -127,6 +128,10 @@ public class Building : WorldObject
 		protected void CreateUnit (string unitName)
 		{
 				buildQueue.Enqueue (unitName);
+				GameObject unit = ResourceManager.GetUnit (unitName);
+				Unit unitObject = unit.GetComponent<Unit> ();
+				if (player && unitObject)
+						player.RemoveResource (ResourceType.Money, unitObject.cost);
 		}
 
 		private void ProcessBuildQueue ()

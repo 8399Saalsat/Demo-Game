@@ -408,7 +408,7 @@ public class HUD : MonoBehaviour
 
 		public void SetCursorState (CursorState newState)
 		{
-				Debug.Log (newState.ToString ());
+				//Debug.Log (newState.ToString ());
 				if (activeCursorState != newState)
 						previousCursorState = activeCursorState;
 				activeCursorState = newState;

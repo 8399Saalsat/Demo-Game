@@ -4,15 +4,8 @@ using System.Collections;
 public class Wonder : Building
 {
 
-		// Use this for initialization
-		void Start ()
+		protected override bool ShouldMakeDecision ()
 		{
-	
-		}
-	
-		// Update is called once per frame
-		void Update ()
-		{
-	
+				return false;
 		}
 }
