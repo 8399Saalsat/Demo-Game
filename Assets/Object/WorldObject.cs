@@ -59,6 +59,8 @@ public class WorldObject : MonoBehaviour
 										target = player.GetObjectForId (loadedTargetId);
 								else
 										SetTeamColor ();
+						} else {
+								SetTeamColor ();
 						}								
 				}
 				InitializeAudio ();
