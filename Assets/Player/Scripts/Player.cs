@@ -117,6 +117,22 @@ public class Player : MonoBehaviour
 		{
 				return findingPlacement;
 		}
+		
+		public int GetResourceAmount (ResourceType type)
+		{
+				return resources [type];
+		}
+		
+		public bool IsDead ()
+		{
+				Building[] buildings = GetComponentsInChildren<Building> ();
+				Unit[] units = GetComponentsInChildren<Unit> ();
+				if (buildings != null && buildings.Length > 0)
+						return false;
+				if (units != null && units.Length > 0)
+						return false;
+				return true;
+		}
 
 		public void FindBuildingLocation ()
 		{

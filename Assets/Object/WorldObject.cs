@@ -74,7 +74,7 @@ public class WorldObject : MonoBehaviour
 
 		protected virtual void OnGUI ()
 		{
-				if (currentlySelected)
+				if (currentlySelected && !ResourceManager.MenuOpen)
 						DrawSelection ();
 		}
 
@@ -262,7 +262,7 @@ public class WorldObject : MonoBehaviour
 		}
 		protected virtual void UseWeapon ()
 		{
-				if (audioElement != null)
+				if (audioElement != null && Time.timeScale > 0)
 						audioElement.Play (useWeaponSound);
 				currentWeaponChargeTime = 0.0f;
 		}

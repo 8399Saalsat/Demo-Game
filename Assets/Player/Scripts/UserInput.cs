@@ -27,11 +27,11 @@ public class UserInput : MonoBehaviour
 		void FixedUpdate ()
 		{	
 				if (Input.GetKeyDown (KeyCode.Escape)) {
-						if (player && player.SelectedObject) {
+						/*	if (player && player.SelectedObject) {
 								player.SelectedObject.SetSelection (false, player.hud.GetPlayingArea ());
 								player.SelectedObject = null;
-						} else
-								OpenPauseMenu ();
+						} else*/
+						OpenPauseMenu ();
 				}
 				if (mouseMoveCamera && !rotating/* && player.hud.MouseInBounds ()*/) {
 						MouseMoveCamera ();
